@@ -11,11 +11,12 @@ export const AppContextProvider = ({children}) => {
 
     const  currency = import.meta.VITE_CURRENCY;
     const navigate = useNavigate();
-    const [user, setuser] = useState(true)
+    const [user, setuser] = useState(null)
     const[isSeller,setIsSeller] =useState(false)
     const[showUserLoging,setShowUserLogin] =useState(false)
     const[products,setProducts] =useState([])
     const[cartItems,setCardItems] =useState({})
+    const[searchQuery,setSearchQuery] =useState({})
 
   const  fetchProducts = async ()=>{
      setProducts(dummyProducts)
@@ -51,10 +52,35 @@ const removeFromCart =(itemId)=>{
             delete cartData[itemId];
         }
     }
+
     toast.success("removed from Cart")
     setCardItems(cartData)
 
 }
+
+
+// get Cart Item Count
+const getCartCount = () =>{
+    let totalCount = 0;
+    for(const item in cartItems){
+        totalCount += cartItems[item];
+    }
+    return totalCount
+}
+
+
+// get card total Amount
+ const getCartAmount =() =>{
+    let totalAmount = 0;
+    for(const items in cartItems){
+        let itemInfo = products.find((product)=> product._id === items);
+        if(cartItems[items]>0){
+            totalAmount += itemInfo.offerPrice * cartItems[items]
+        }
+    }
+    return Math.floor(totalAmount * 100)/100;
+ }
+
 
   useEffect(()=>{
     fetchProducts()
@@ -73,7 +99,12 @@ const removeFromCart =(itemId)=>{
         addToCart,
         updateCartItem,
         removeFromCart,
-        cartItems
+        cartItems,
+        searchQuery,
+        setSearchQuery,
+        getCartAmount,
+        getCartCount
+
     }
 
     return <AppContext.Provider  value={value}>
