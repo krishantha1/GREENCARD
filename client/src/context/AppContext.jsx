@@ -1,6 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { dummyProducts } from "../assets/assets";
+import { data, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -21,16 +21,60 @@ export const AppContextProvider = ({children}) => {
     const[isSeller,setIsSeller] =useState(false)
     const[showUserLoging,setShowUserLogin] =useState(false)
     const[products,setProducts] =useState([])
+
     const[cartItems,setCardItems] =useState({})
     const[searchQuery,setSearchQuery] =useState({})
 
 
     //fetch seller states
-    
+    const fetchSeller = async() =>{
+        try{
+            const{data} = await axios.get('/api/seller/is-auth');
+            if(data.success){
+                setIsSeller(true)
+            }else{
+                setIsSeller(true)
+            }
+        // eslint-disable-next-line no-unused-vars
+        }catch(error){
+            setIsSeller(false)
+        }
+    }
 
-  const  fetchProducts = async ()=>{
-     setProducts(dummyProducts)
-  }
+    // Festch User Auther Status
+
+    const fetchUser = async()=>{
+        try{
+            const{data} = await axios.get('api/user/is-auth');
+            if(data.success){
+                setuser(data.user)
+                setCardItems(data.user.cartItems)
+            }
+        }
+        catch(error){
+
+            setuser(null)
+
+        }
+    }
+
+
+    const fetchProducts = async () => {
+         
+          try{
+            const {data} = await axios.get('/api/product/list')
+            if(data.success){
+                setProducts(data.products)
+            }
+            else{
+                toast.error(data.message)
+            }
+          }
+          catch(error){
+            toast.error(data.message)
+          }
+    }
+  
 
   // add product to card
   const addToCart = (itemId)=>{
@@ -93,8 +137,30 @@ const getCartCount = () =>{
 
 
   useEffect(()=>{
+    fetchUser()
+    fetchSeller()
     fetchProducts()
+
   },[])
+  //update Database cart items
+
+  useEffect(()=>{
+    const updateCart =async () =>{
+        try{
+        const{data} =await axios.post('/api/cart/update',{cartItems})
+        if(!data.success){
+            toast.error(data.message)
+        }
+        }catch(error){
+            toast.error(error.message)
+        }
+    }
+
+    if(user){
+        updateCart()
+    }
+
+  },[cartItems])
 
     const value = {
         navigate,
@@ -114,7 +180,8 @@ const getCartCount = () =>{
         setSearchQuery,
         getCartAmount,
         getCartCount,
-        axios
+        axios,
+        fetchProducts
 
     }
 
